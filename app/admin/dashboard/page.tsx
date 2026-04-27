@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { COLORS } from '@/lib/constants';
 import { Package, PackageStatus } from '@/types';
@@ -94,6 +94,29 @@ export default function AdminDashboard() {
       console.error('Erreur générale suppression colis:', err);
       toast.error('Erreur lors de la suppression du colis');
     }
+  };
+
+  // Calculer les statistiques
+  const getStats = () => {
+    const total = packages.length;
+    const received = packages.filter(pkg => pkg.status === PackageStatus.RECUE_PAR_TRANSITAIRE).length;
+    const inTransit = packages.filter(pkg => pkg.status === PackageStatus.EN_EXPEDITION).length;
+    const arrived = packages.filter(pkg => pkg.status === PackageStatus.ARRIVEE).length;
+    const recovery = packages.filter(pkg => pkg.status === PackageStatus.RECUPERATION).length;
+
+    const totalRevenue = packages.reduce((sum, pkg) => sum + (pkg.totalPrice || 0), 0);
+    const avgPrice = total > 0 ? totalRevenue / total : 0;
+
+    return {
+      total,
+      received,
+      inTransit,
+      arrived,
+      recovery,
+      totalRevenue,
+      avgPrice,
+      arrivalRate: total > 0 ? Math.round((arrived / total) * 100) : 0
+    };
   };
 
   const handleLogout = () => {
@@ -195,10 +218,20 @@ export default function AdminDashboard() {
               <p className="text-gray-600 text-lg">
                 Gérez les colis et suivez leurs expéditions
               </p>
-              <div className="flex items-center gap-2 mt-4">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-sm text-gray-600">{packages.length} colis actifs</span>
-              </div>
+              {isLoading ? (
+                <div className="flex flex-col justify-center items-center h-64 space-y-4">
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent absolute top-0"></div>
+                  </div>
+                  <p className="text-gray-600 font-medium animate-pulse">Chargement des colis...</p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-4">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-sm text-gray-600">{packages.length} colis actifs</span>
+                </div>
+              )}
             </div>
             <div className="flex gap-3">
               <button
@@ -266,6 +299,111 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Section Statistiques */}
+        {!isLoading && packages.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" style={{ color: COLORS.primary.blue }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: COLORS.primary.blue }}>
+                Statistiques des colis
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Carte Total */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total des colis</p>
+                    <p className="text-3xl font-bold mt-2" style={{ color: COLORS.primary.blue }}>
+                      {getStats().total}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightBlue }}>
+                    <svg className="w-6 h-6" style={{ color: COLORS.primary.blue }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Carte Reçus */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Reçus par transitaire</p>
+                    <p className="text-3xl font-bold mt-2 text-blue-600">
+                      {getStats().received}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Carte En expédition */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">En expédition</p>
+                    <p className="text-3xl font-bold mt-2 text-yellow-600">
+                      {getStats().inTransit}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-yellow-100">
+                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Carte Arrivés */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Arrivés</p>
+                    <p className="text-3xl font-bold mt-2 text-green-600">
+                      {getStats().arrived}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{getStats().arrivalRate}% de taux</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-100">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Carte Revenus */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Revenus totaux</p>
+                    <p className="text-3xl font-bold mt-2 text-purple-600">
+                      {getStats().totalRevenue.toLocaleString('fr-FR')} FCFA
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Moy: {getStats().avgPrice.toLocaleString('fr-FR')} FCFA</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-100">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tableau des colis */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200" style={{ backgroundColor: COLORS.primary.lightBlue }}>
@@ -288,8 +426,8 @@ export default function AdminDashboard() {
           </div>
           
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
+            <table className="w-full min-w-[800px]">
+              <thead className="hidden lg:table-header-group">
                 <tr className="border-b border-gray-200" style={{ backgroundColor: COLORS.primary.lightBlue }}>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.primary.darkBlue }}>
                     N° Tracking
@@ -347,36 +485,38 @@ export default function AdminDashboard() {
                   </tr>
                 ) : (
                   packages.map((pkg, index) => (
-                  <tr key={pkg.id} className="hover:bg-gray-50 transition-colors duration-150" style={{ backgroundColor: index % 2 === 0 ? 'white' : COLORS.primary.lightBlue + '20' }}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightYellow }}>
-                          <svg className="w-4 h-4" style={{ color: COLORS.primary.darkYellow }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <span className="font-mono text-sm font-medium text-gray-900">{pkg.trackingNumber}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{pkg.clientName}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{pkg.clientPhone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm space-y-1">
-                        <div className="font-medium text-gray-900">{pkg.departureCountry}</div>
-                        <div className="text-xs text-gray-500">→ {pkg.arrivalCountry}, {pkg.arrivalCity}</div>
-                        <div className="text-xs text-blue-600">
-                          {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : ''} - 
-                          {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : ''}
-                        </div>
-                      </div>
-                    </td>
+                    <React.Fragment key={pkg.id}>
+                      {/* Vue Desktop */}
+                      <tr className="hidden lg:table-row hover:bg-gray-50 transition-colors duration-150" style={{ backgroundColor: index % 2 === 0 ? 'white' : COLORS.primary.lightBlue + '20' }}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightYellow }}>
+                              <svg className="w-4 h-4" style={{ color: COLORS.primary.darkYellow }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <span className="font-mono text-sm font-medium text-gray-900">{pkg.trackingNumber}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{pkg.clientName}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{pkg.clientPhone}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm space-y-1">
+                            <div className="font-medium text-gray-900">{pkg.departureCountry}</div>
+                            <div className="text-xs text-gray-500">→ {pkg.arrivalCountry}, {pkg.arrivalCity}</div>
+                            <div className="text-xs text-blue-600">
+                              {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : ''} - 
+                              {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : ''}
+                            </div>
+                          </div>
+                        </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">{pkg.quantity} kg</div>
-                      <div className="text-xs text-gray-500">{pkg.pricePerKg.toLocaleString('fr-FR')} FCFA/kg</div>
+                      <div className="text-xs text-gray-500">{pkg.pricePerKg?.toLocaleString('fr-FR')} FCFA/kg</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold" style={{ color: COLORS.primary.blue }}>
@@ -399,7 +539,7 @@ export default function AdminDashboard() {
                           style={{ color: COLORS.primary.blue }}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L8.586-8.586z" />
                           </svg>
                         </button>
                         <button 
@@ -413,7 +553,90 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                   </tr>
-                  )))}
+
+                      {/* Vue Mobile */}
+                      <tr className="lg:hidden border-b border-gray-200">
+                        <td className="px-4 py-4">
+                          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightYellow }}>
+                                  <svg className="w-4 h-4" style={{ color: COLORS.primary.darkYellow }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                </div>
+                                <span className="font-mono text-sm font-medium text-gray-900">{pkg.trackingNumber}</span>
+                              </div>
+                              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(pkg.status)}`}>
+                                {getStatusText(pkg.status)}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 gap-2">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Client</p>
+                                <p className="text-sm font-medium text-gray-900">{pkg.clientName}</p>
+                                <p className="text-sm text-gray-600">{pkg.clientPhone}</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Trajet</p>
+                                <p className="text-sm font-medium text-gray-900">{pkg.departureCountry}</p>
+                                <p className="text-xs text-gray-500">→ {pkg.arrivalCountry}, {pkg.arrivalCity}</p>
+                                <p className="text-xs text-blue-600">
+                                  {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : ''} - 
+                                  {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : ''}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Poids & Prix</p>
+                                <p className="text-sm font-medium text-gray-900">{pkg.quantity} kg</p>
+                                <p className="text-sm font-bold text-gray-900">{pkg.totalPrice?.toLocaleString('fr-FR')} FCFA</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Quantité</p>
+                                <p className="text-sm font-medium text-gray-900">{pkg.quantity} kg</p>
+                                <p className="text-xs text-gray-500">{pkg.pricePerKg?.toLocaleString('fr-FR')} FCFA/kg</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 mb-1">Total</p>
+                                <p className="text-sm font-bold text-gray-900">{pkg.totalPrice?.toLocaleString('fr-FR')} FCFA</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setEditingPackage(pkg);
+                                    setShowEditForm(true);
+                                  }}
+                                  className="p-2 rounded-lg hover:bg-blue-50 transition-colors duration-150" 
+                                  style={{ color: COLORS.primary.blue }}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button 
+                                  onClick={() => handleDeletePackage(pkg.id)}
+                                  className="p-2 rounded-lg hover:bg-red-50 transition-colors duration-150 text-red-600"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -1153,15 +1376,8 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
             >
               <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par transitaire</option>
               <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
-              <option value={PackageStatus.SHIPPED}>Expédié</option>
-              <option value={PackageStatus.IN_TRANSIT}>En transit</option>
-              <option value={PackageStatus.CUSTOMS}>En douane</option>
-              <option value={PackageStatus.OUT_FOR_DELIVERY}>En livraison</option>
-              <option value={PackageStatus.DELIVERED}>Livré</option>
               <option value={PackageStatus.ARRIVEE}>Arrivé</option>
               <option value={PackageStatus.RECUPERATION}>En récupération</option>
-              <option value={PackageStatus.LOST}>Perdu</option>
-              <option value={PackageStatus.RETURNED}>Retourné</option>
             </select>
             <div className="mt-2">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(formData.status || PackageStatus.PENDING)}`}>

@@ -47,16 +47,16 @@ export default function Home() {
 
       {/* Particules flottantes */}
       <div className="absolute inset-0">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <div
-            key={i}
+            key={particle.id}
             className="absolute w-2 h-2 rounded-full opacity-30 animate-pulse"
             style={{
-              backgroundColor: i % 2 === 0 ? COLORS.primary.blue : COLORS.primary.yellow,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`
+              backgroundColor: particle.id % 2 === 0 ? COLORS.primary.blue : COLORS.primary.yellow,
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              animationDelay: `${particle.delay}s`,
+              animation: `float ${particle.duration}s ease-in-out infinite`
             }}
           />
         ))}
