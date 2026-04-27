@@ -23,6 +23,11 @@ export default function LoginPage() {
     setError('');
 
     try {
+      if (!supabase) {
+        toast.error('Service de connexion temporairement indisponible');
+        return;
+      }
+      
       // Vérification avec Supabase pour tous les utilisateurs
       const { data: userData, error: userError } = await supabase
         .from('users')

@@ -16,6 +16,12 @@ export default function AdminDashboard() {
   // Charger les colis depuis Supabase
   const loadPackages = async () => {
     try {
+      if (!supabase) {
+        console.error('Supabase client non initialisé');
+        setIsLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('packages')
         .select('*')
@@ -94,6 +100,12 @@ export default function AdminDashboard() {
   // Ajouter un colis dans Supabase
   const addPackage = async (newPackage: Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>) => {
     try {
+      if (!supabaseAdmin) {
+        console.error('Supabase admin client non initialisé');
+        alert('Erreur de connexion à la base de données');
+        return;
+      }
+      
       console.log('Tentative d\'ajout de colis avec les données:', newPackage);
       
       // Générer un numéro de tracking unique
@@ -152,6 +164,12 @@ export default function AdminDashboard() {
   // Supprimer un colis
   const deletePackage = async (packageId: string) => {
     try {
+      if (!supabaseAdmin) {
+        console.error('Supabase admin client non initialisé');
+        alert('Erreur de connexion à la base de données');
+        return;
+      }
+      
       const { error } = await supabaseAdmin
         .from('packages')
         .delete()

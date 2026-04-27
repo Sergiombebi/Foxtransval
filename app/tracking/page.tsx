@@ -24,6 +24,12 @@ export default function TrackingPage() {
     setSearchResult(null);
 
     try {
+      if (!supabase) {
+        setError('Service de suivi temporairement indisponible');
+        setIsLoading(false);
+        return;
+      }
+      
       console.log('Recherche du colis avec numéro:', trackingNumber);
       
       // Rechercher dans la base de données Supabase
