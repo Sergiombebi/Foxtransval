@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { COLORS } from '@/lib/constants';
 import { Package, PackageStatus } from '@/types';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { getPackages, addPackage, deletePackage } from '@/lib/supabase/actions';
 
 export default function AdminDashboard() {
   const [packages, setPackages] = useState<Package[]>([]);
@@ -16,58 +16,11 @@ export default function AdminDashboard() {
   // Charger les colis depuis Supabase
   const loadPackages = async () => {
     try {
-      if (!supabase) {
-        console.error('Supabase client non initialisé');
-        setIsLoading(false);
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('packages')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Erreur chargement colis:', error);
-        setIsLoading(false);
-        return;
-      }
-
-      // Transformer les données pour correspondre au type Package
-      const transformedPackages: Package[] = (data || []).map(pkg => ({
-        id: pkg.id,
-        trackingNumber: pkg.tracking_number,
-        description: pkg.nature,
-        sender: 'Transitaire',
-        recipient: pkg.client_name,
-        origin: pkg.departure_country,
-        destination: pkg.arrival_country,
-        status: pkg.status,
-        createdAt: new Date(pkg.created_at),
-        updatedAt: new Date(pkg.updated_at || pkg.created_at),
-        estimatedDelivery: new Date(pkg.arrival_date),
-        currentLocation: pkg.arrival_city,
-        weight: pkg.quantity,
-        dimensions: { length: 0, width: 0, height: 0 },
-        // Champs supplémentaires
-        clientName: pkg.client_name,
-        clientPhone: pkg.client_phone,
-        nature: pkg.nature,
-        quantity: pkg.quantity,
-        pricePerKg: pkg.price_per_kg,
-        totalPrice: pkg.total_price,
-        departureDate: new Date(pkg.departure_date),
-        arrivalDate: new Date(pkg.arrival_date),
-        departureCountry: pkg.departure_country,
-        arrivalCountry: pkg.arrival_country,
-        arrivalCity: pkg.arrival_city,
-        packageImage: pkg.package_image
-      }));
-
-      setPackages(transformedPackages);
+      const packages = await getPackages();
+      setPackages(packages);
+      setIsLoading(false);
     } catch (err) {
-      console.error('Erreur générale:', err);
-    } finally {
+      console.error('Erreur générale chargement colis:', err);
       setIsLoading(false);
     }
   };
@@ -98,92 +51,29 @@ export default function AdminDashboard() {
   }, [router]);
 
   // Ajouter un colis dans Supabase
-  const addPackage = async (newPackage: Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>) => {
+  const handleAddPackage = async (newPackage: Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>) => {
     try {
-      if (!supabaseAdmin) {
-        console.error('Supabase admin client non initialisé');
-        alert('Erreur de connexion à la base de données');
-        return;
-      }
-      
       console.log('Tentative d\'ajout de colis avec les données:', newPackage);
       
-      // Générer un numéro de tracking unique
-      const trackingNumber = generateTrackingNumber();
-      console.log('Numéro de tracking généré:', trackingNumber);
+      await addPackage(newPackage);
+      console.log('Colis ajouté avec succès');
       
-      const packageData = {
-        tracking_number: trackingNumber,
-        client_name: newPackage.clientName,
-        client_phone: newPackage.clientPhone,
-        nature: newPackage.nature,
-        quantity: newPackage.quantity,
-        price_per_kg: newPackage.pricePerKg,
-        total_price: newPackage.totalPrice,
-        departure_country: newPackage.departureCountry,
-        arrival_country: newPackage.arrivalCountry,
-        arrival_city: newPackage.arrivalCity,
-        departure_date: newPackage.departureDate.toISOString(),
-        arrival_date: newPackage.arrivalDate.toISOString(),
-        status: newPackage.status,
-        package_image: newPackage.packageImage || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      console.log('Données préparées pour Supabase:', packageData);
-
-      // Utiliser supabaseAdmin pour contourner les politiques RLS
-      const { data, error } = await supabaseAdmin
-        .from('packages')
-        .insert([packageData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur ajout colis:', error);
-        console.error('Détails de l\'erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        return;
-      }
-
-      console.log('Colis ajouté avec succès:', data);
-      
-      // Recharger les colis
       await loadPackages();
       setShowAddForm(false);
     } catch (err) {
       console.error('Erreur générale ajout colis:', err);
+      alert('Erreur lors de l\'ajout du colis');
     }
   };
 
   // Supprimer un colis
-  const deletePackage = async (packageId: string) => {
+  const handleDeletePackage = async (packageId: string) => {
     try {
-      if (!supabaseAdmin) {
-        console.error('Supabase admin client non initialisé');
-        alert('Erreur de connexion à la base de données');
-        return;
-      }
-      
-      const { error } = await supabaseAdmin
-        .from('packages')
-        .delete()
-        .eq('id', packageId);
-
-      if (error) {
-        console.error('Erreur suppression colis:', error);
-        return;
-      }
-
-      // Recharger les colis
+      await deletePackage(packageId);
       await loadPackages();
     } catch (err) {
       console.error('Erreur générale suppression colis:', err);
+      alert('Erreur lors de la suppression du colis');
     }
   };
 
@@ -328,7 +218,7 @@ export default function AdminDashboard() {
               </h2>
             </div>
             <PackageForm 
-              onSubmit={addPackage}
+              onSubmit={handleAddPackage}
               onCancel={() => setShowAddForm(false)}
             />
           </div>
@@ -464,7 +354,7 @@ export default function AdminDashboard() {
                           </svg>
                         </button>
                         <button 
-                          onClick={() => deletePackage(pkg.id)}
+                          onClick={() => handleDeletePackage(pkg.id)}
                           className="p-2 rounded-lg hover:bg-red-50 transition-colors duration-150 text-red-600"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
