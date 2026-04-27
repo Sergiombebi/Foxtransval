@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { COLORS } from '@/lib/constants';
 import { Package, PackageStatus } from '@/types';
 import { getPackages, addPackage, deletePackage } from '@/lib/supabase/actions';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
   const [packages, setPackages] = useState<Package[]>([]);
@@ -58,11 +59,12 @@ export default function AdminDashboard() {
       await addPackage(newPackage);
       console.log('Colis ajouté avec succès');
       
+      toast.success('Colis ajouté avec succès!');
       await loadPackages();
       setShowAddForm(false);
     } catch (err) {
       console.error('Erreur générale ajout colis:', err);
-      alert('Erreur lors de l\'ajout du colis');
+      toast.error('Erreur lors de l\'ajout du colis');
     }
   };
 
@@ -70,10 +72,11 @@ export default function AdminDashboard() {
   const handleDeletePackage = async (packageId: string) => {
     try {
       await deletePackage(packageId);
+      toast.success('Colis supprimé avec succès!');
       await loadPackages();
     } catch (err) {
       console.error('Erreur générale suppression colis:', err);
-      alert('Erreur lors de la suppression du colis');
+      toast.error('Erreur lors de la suppression du colis');
     }
   };
 
@@ -380,6 +383,7 @@ interface PackageFormProps {
 }
 
 function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>({
     description: '',
     sender: '',
@@ -412,9 +416,14 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     setFormData(prev => ({ ...prev, totalPrice: total }));
   }, [formData.quantity, formData.pricePerKg]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -740,13 +749,26 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
         </button>
         <button
           type="submit"
-          className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+          disabled={isSubmitting}
+          className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           style={{ backgroundColor: COLORS.primary.blue }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Ajouter le colis
+          {isSubmitting ? (
+            <>
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-0V4.5" />
+              </svg>
+              Ajout en cours...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Ajouter le colis
+            </>
+          )}
         </button>
       </div>
     </form>
