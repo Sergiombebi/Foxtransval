@@ -1,24 +1,46 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+let supabaseInstance: SupabaseClient | null = null
+let supabaseAdminInstance: SupabaseClient | null = null
 
-// Vérifier que les variables existent avant de créer le client
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Variables Supabase manquantes. Le client Supabase ne sera pas initialisé.')
+// Initialisation paresseuse du client Supabase
+export const getSupabase = (): SupabaseClient | null => {
+  if (supabaseInstance) return supabaseInstance
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Variables Supabase manquantes. Le client Supabase ne sera pas initialisé.')
+    return null
+  }
+  
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+  return supabaseInstance
 }
 
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
+// Initialisation paresseuse du client admin Supabase
+export const getSupabaseAdmin = (): SupabaseClient | null => {
+  if (supabaseAdminInstance) return supabaseAdminInstance
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Variables Supabase manquantes. Le client admin Supabase ne sera pas initialisé.')
+    return null
+  }
+  
+  supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  return supabaseAdminInstance
+}
 
-// Client avec service role pour contourner RLS (admin operations)
-export const supabaseAdmin = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null
+// Pour la rétrocompatibilité
+export const supabase = getSupabase()
+export const supabaseAdmin = getSupabaseAdmin()
