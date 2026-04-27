@@ -1,13 +1,17 @@
 // Server Actions pour les opérations Supabase sécurisées
 'use server'
 
-import { createAdminSupabase } from './server'
+import { getSupabaseAdmin } from '../supabase'
 import type { Package } from '@/types'
 
 // Server Action pour charger les colis
 export async function getPackages(): Promise<Package[]> {
   try {
-    const supabase = createAdminSupabase()
+    const supabase = getSupabaseAdmin()
+    
+    if (!supabase) {
+      throw new Error('Connexion Supabase indisponible')
+    }
     
     const { data, error } = await supabase
       .from('packages')
@@ -57,7 +61,11 @@ export async function getPackages(): Promise<Package[]> {
 // Server Action pour ajouter un colis
 export async function addPackage(packageData: Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>): Promise<void> {
   try {
-    const supabase = createAdminSupabase()
+    const supabase = getSupabaseAdmin()
+    
+    if (!supabase) {
+      throw new Error('Connexion Supabase indisponible')
+    }
     
     // Générer un numéro de tracking unique
     const trackingNumber = `FOX-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 100)).padStart(2, '0')}`
@@ -78,14 +86,20 @@ export async function addPackage(packageData: Omit<Package, 'id' | 'trackingNumb
         price_per_kg: packageData.pricePerKg,
         total_price: packageData.totalPrice,
         package_image: packageData.packageImage,
-        status: 'RECUE_PAR_TRANSITAIRE',
+        status: 'recu_par_transitaire',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
 
     if (error) {
       console.error('Erreur ajout colis:', error)
-      throw new Error('Impossible d\'ajouter le colis')
+      console.error('Détails de l\'erreur:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw new Error(`Impossible d'ajouter le colis: ${error.message}`)
     }
   } catch (error) {
     console.error('Erreur addPackage:', error)
@@ -93,10 +107,59 @@ export async function addPackage(packageData: Omit<Package, 'id' | 'trackingNumb
   }
 }
 
+// Server Action pour modifier un colis
+export async function updatePackage(packageId: string, packageData: Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+  try {
+    const supabase = getSupabaseAdmin()
+    
+    if (!supabase) {
+      throw new Error('Connexion Supabase indisponible')
+    }
+    
+    const { error } = await supabase
+      .from('packages')
+      .update({
+        client_name: packageData.clientName,
+        client_phone: packageData.clientPhone,
+        nature: packageData.nature,
+        departure_country: packageData.departureCountry,
+        arrival_country: packageData.arrivalCountry,
+        arrival_city: packageData.arrivalCity,
+        departure_date: packageData.departureDate?.toISOString(),
+        arrival_date: packageData.arrivalDate?.toISOString(),
+        quantity: packageData.quantity,
+        price_per_kg: packageData.pricePerKg,
+        total_price: packageData.totalPrice,
+        package_image: packageData.packageImage,
+        status: packageData.status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', packageId)
+
+    if (error) {
+      console.error('Erreur modification colis:', error)
+      console.error('Détails de l\'erreur:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      throw new Error(`Impossible de modifier le colis: ${error.message}`)
+    }
+  } catch (error) {
+    console.error('Erreur updatePackage:', error)
+    throw error
+  }
+}
+
 // Server Action pour supprimer un colis
 export async function deletePackage(packageId: string): Promise<void> {
   try {
-    const supabase = createAdminSupabase()
+    const supabase = getSupabaseAdmin()
+    
+    if (!supabase) {
+      throw new Error('Connexion Supabase indisponible')
+    }
     
     const { error } = await supabase
       .from('packages')

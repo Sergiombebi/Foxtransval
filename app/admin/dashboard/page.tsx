@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { COLORS } from '@/lib/constants';
 import { Package, PackageStatus } from '@/types';
-import { getPackages, addPackage, deletePackage } from '@/lib/supabase/actions';
+import { getPackages, addPackage, updatePackage, deletePackage } from '@/lib/supabase/actions';
 import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState('');
   const router = useRouter();
@@ -65,6 +67,20 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Erreur générale ajout colis:', err);
       toast.error('Erreur lors de l\'ajout du colis');
+    }
+  };
+
+  // Modifier un colis
+  const handleEditPackage = async (packageId: string, packageData: Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>) => {
+    try {
+      await updatePackage(packageId, packageData);
+      toast.success('Colis modifié avec succès!');
+      await loadPackages();
+      setShowEditForm(false);
+      setEditingPackage(null);
+    } catch (err) {
+      console.error('Erreur générale modification colis:', err);
+      toast.error('Erreur lors de la modification du colis');
     }
   };
 
@@ -227,6 +243,29 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {showEditForm && editingPackage && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightBlue }}>
+                <svg className="w-5 h-5" style={{ color: COLORS.primary.blue }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: COLORS.primary.blue }}>
+                Modifier le colis #{editingPackage.trackingNumber}
+              </h2>
+            </div>
+            <EditPackageForm 
+              package={editingPackage}
+              onSubmit={handleEditPackage}
+              onCancel={() => {
+                setShowEditForm(false);
+                setEditingPackage(null);
+              }}
+            />
+          </div>
+        )}
+
         {/* Tableau des colis */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200" style={{ backgroundColor: COLORS.primary.lightBlue }}>
@@ -351,7 +390,14 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <button className="p-2 rounded-lg hover:bg-blue-50 transition-colors duration-150" style={{ color: COLORS.primary.blue }}>
+                        <button 
+                          onClick={() => {
+                            setEditingPackage(pkg);
+                            setShowEditForm(true);
+                          }}
+                          className="p-2 rounded-lg hover:bg-blue-50 transition-colors duration-150" 
+                          style={{ color: COLORS.primary.blue }}
+                        >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
@@ -767,6 +813,458 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Ajouter le colis
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+interface EditPackageFormProps {
+  package: Package;
+  onSubmit: (packageId: string, packageData: Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>) => void;
+  onCancel: () => void;
+}
+
+function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>>({
+    description: pkg.description,
+    sender: pkg.sender,
+    recipient: pkg.recipient,
+    origin: pkg.origin,
+    destination: pkg.destination,
+    status: pkg.status,
+    weight: pkg.weight,
+    dimensions: pkg.dimensions,
+    estimatedDelivery: pkg.estimatedDelivery,
+    currentLocation: pkg.currentLocation,
+    clientName: pkg.clientName,
+    clientPhone: pkg.clientPhone,
+    nature: pkg.nature,
+    departureDate: pkg.departureDate,
+    arrivalDate: pkg.arrivalDate,
+    quantity: pkg.quantity,
+    pricePerKg: pkg.pricePerKg,
+    totalPrice: pkg.totalPrice,
+    departureCountry: pkg.departureCountry,
+    arrivalCountry: pkg.arrivalCountry,
+    arrivalCity: pkg.arrivalCity
+  });
+
+  // Calculer le total automatiquement
+  useEffect(() => {
+    const total = (formData.quantity || 0) * (formData.pricePerKg || 0);
+    setFormData(prev => ({ ...prev, totalPrice: total }));
+  }, [formData.quantity, formData.pricePerKg]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit(pkg.id, formData);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: (name === 'quantity' || name === 'pricePerKg' || name === 'weight') ? parseFloat(value) || 0 : 
+              name === 'estimatedDelivery' || name === 'departureDate' || name === 'arrivalDate' ? new Date(value) :
+              value
+    }));
+  };
+
+  const getStatusColor = (status: PackageStatus) => {
+    switch (status) {
+      case PackageStatus.RECUE_PAR_TRANSITAIRE:
+        return 'bg-blue-100 text-blue-800';
+      case PackageStatus.EN_EXPEDITION:
+        return 'bg-yellow-100 text-yellow-800';
+      case PackageStatus.ARRIVEE:
+        return 'bg-green-100 text-green-800';
+      case PackageStatus.RECUPERATION:
+        return 'bg-purple-100 text-purple-800';
+      case PackageStatus.SHIPPED:
+        return 'bg-indigo-100 text-indigo-800';
+      case PackageStatus.IN_TRANSIT:
+        return 'bg-orange-100 text-orange-800';
+      case PackageStatus.CUSTOMS:
+        return 'bg-red-100 text-red-800';
+      case PackageStatus.OUT_FOR_DELIVERY:
+        return 'bg-teal-100 text-teal-800';
+      case PackageStatus.DELIVERED:
+        return 'bg-green-100 text-green-800';
+      case PackageStatus.LOST:
+        return 'bg-red-100 text-red-800';
+      case PackageStatus.RETURNED:
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Informations de base */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
+          Informations de base
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <input
+              type="text"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Description du colis"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Expéditeur
+            </label>
+            <input
+              type="text"
+              name="sender"
+              value={formData.sender}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Nom de l'expéditeur"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Destinataire
+            </label>
+            <input
+              type="text"
+              name="recipient"
+              value={formData.recipient}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Nom du destinataire"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Localisation actuelle
+            </label>
+            <input
+              type="text"
+              name="currentLocation"
+              value={formData.currentLocation}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Localisation actuelle"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Transport */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
+          Transport
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pays de départ
+            </label>
+            <input
+              type="text"
+              name="origin"
+              value={formData.origin}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Pays de départ"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pays de destination
+            </label>
+            <input
+              type="text"
+              name="destination"
+              value={formData.destination}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Pays de destination"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date de départ
+            </label>
+            <input
+              type="date"
+              name="departureDate"
+              value={formData.departureDate ? new Date(formData.departureDate).toISOString().split('T')[0] : ''}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date d'arrivée estimée
+            </label>
+            <input
+              type="date"
+              name="estimatedDelivery"
+              value={formData.estimatedDelivery ? new Date(formData.estimatedDelivery).toISOString().split('T')[0] : ''}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Informations Client */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
+          Informations Client
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nom du client
+            </label>
+            <input
+              type="text"
+              name="clientName"
+              value={formData.clientName}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Téléphone du client
+            </label>
+            <input
+              type="tel"
+              name="clientPhone"
+              value={formData.clientPhone}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pays de départ (client)
+            </label>
+            <input
+              type="text"
+              name="departureCountry"
+              value={formData.departureCountry}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pays d'arrivée (client)
+            </label>
+            <input
+              type="text"
+              name="arrivalCountry"
+              value={formData.arrivalCountry}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ville d'arrivée
+            </label>
+            <input
+              type="text"
+              name="arrivalCity"
+              value={formData.arrivalCity}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date d'arrivée
+            </label>
+            <input
+              type="date"
+              name="arrivalDate"
+              value={formData.arrivalDate ? new Date(formData.arrivalDate).toISOString().split('T')[0] : ''}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Détails du colis */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
+          Détails du colis
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nature du colis
+            </label>
+            <select
+              name="nature"
+              value={formData.nature}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="Électroniques">Électroniques</option>
+              <option value="Vêtements">Vêtements</option>
+              <option value="Cosmétiques">Cosmétiques</option>
+              <option value="Alimentaires">Alimentaires</option>
+              <option value="Documents">Documents</option>
+              <option value="Autres">Autres</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Statut
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par transitaire</option>
+              <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
+              <option value={PackageStatus.SHIPPED}>Expédié</option>
+              <option value={PackageStatus.IN_TRANSIT}>En transit</option>
+              <option value={PackageStatus.CUSTOMS}>En douane</option>
+              <option value={PackageStatus.OUT_FOR_DELIVERY}>En livraison</option>
+              <option value={PackageStatus.DELIVERED}>Livré</option>
+              <option value={PackageStatus.ARRIVEE}>Arrivé</option>
+              <option value={PackageStatus.RECUPERATION}>En récupération</option>
+              <option value={PackageStatus.LOST}>Perdu</option>
+              <option value={PackageStatus.RETURNED}>Retourné</option>
+            </select>
+            <div className="mt-2">
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(formData.status || PackageStatus.PENDING)}`}>
+                Statut actuel
+              </span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Poids (kg)
+            </label>
+            <input
+              type="number"
+              name="weight"
+              value={formData.weight}
+              onChange={handleChange}
+              min="0.1"
+              step="0.1"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+                  </div>
+      </div>
+
+      {/* Prix */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
+          Prix
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Quantité
+            </label>
+            <input
+              type="number"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+              min="0.1"
+              step="0.1"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Prix par kg (FCFA)
+            </label>
+            <input
+              type="number"
+              name="pricePerKg"
+              value={formData.pricePerKg}
+              onChange={handleChange}
+              min="0"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Prix total (FCFA)
+            </label>
+            <input
+              type="number"
+              name="totalPrice"
+              value={formData.totalPrice}
+              readOnly
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Boutons d'action */}
+      <div className="flex justify-end gap-4 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-200"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          style={{ backgroundColor: COLORS.primary.blue }}
+        >
+          {isSubmitting ? (
+            <>
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-0V4.5" />
+              </svg>
+              Modification en cours...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Modifier le colis
             </>
           )}
         </button>
