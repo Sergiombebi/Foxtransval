@@ -7,6 +7,59 @@ import { Package, PackageStatus } from '@/types';
 import { getPackages, addPackage, updatePackage, deletePackage } from '@/lib/supabase/actions';
 import toast from 'react-hot-toast';
 
+// Fonctions utilitaires pour les statuts
+const getStatusColor = (status: PackageStatus) => {
+  switch (status) {
+    case PackageStatus.RECUE_PAR_TRANSITAIRE:
+      return 'bg-blue-100 text-blue-800';
+    case PackageStatus.EN_EXPEDITION:
+      return 'bg-yellow-100 text-yellow-800';
+    case PackageStatus.ARRIVEE:
+      return 'bg-green-100 text-green-800';
+    case PackageStatus.RECUPERATION:
+      return 'bg-purple-100 text-purple-800';
+    case PackageStatus.SHIPPED:
+      return 'bg-indigo-100 text-indigo-800';
+    case PackageStatus.IN_TRANSIT:
+      return 'bg-orange-100 text-orange-800';
+    case PackageStatus.CUSTOMS:
+      return 'bg-red-100 text-red-800';
+    case PackageStatus.OUT_FOR_DELIVERY:
+      return 'bg-teal-100 text-teal-800';
+    case PackageStatus.DELIVERED:
+      return 'bg-green-100 text-green-800';
+    case PackageStatus.LOST:
+      return 'bg-red-100 text-red-800';
+    case PackageStatus.RETURNED:
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getStatusText = (status: PackageStatus) => {
+  switch (status) {
+    case PackageStatus.PENDING:
+      return 'En attente';
+    case PackageStatus.SHIPPED:
+      return 'Expédié';
+    case PackageStatus.IN_TRANSIT:
+      return 'En transit';
+    case PackageStatus.CUSTOMS:
+      return 'En douane';
+    case PackageStatus.OUT_FOR_DELIVERY:
+      return 'En livraison';
+    case PackageStatus.DELIVERED:
+      return 'Livré';
+    case PackageStatus.LOST:
+      return 'Perdu';
+    case PackageStatus.RETURNED:
+      return 'Retourné';
+    default:
+      return status;
+  }
+};
+
 export default function AdminDashboard() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -14,6 +67,8 @@ export default function AdminDashboard() {
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const router = useRouter();
 
   // Charger les colis depuis Supabase
@@ -125,6 +180,14 @@ export default function AdminDashboard() {
     router.push('/');
   };
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPackages = packages.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(packages.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   const generateTrackingNumber = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -140,54 +203,8 @@ export default function AdminDashboard() {
     return `FOX-${year}-${month}-${sequence}`;
   };
 
-  const getStatusColor = (status: PackageStatus) => {
-    switch (status) {
-      case PackageStatus.DELIVERED:
-        return 'bg-green-100 text-green-800';
-      case PackageStatus.IN_TRANSIT:
-        return 'bg-blue-100 text-blue-800';
-      case PackageStatus.CUSTOMS:
-        return 'bg-yellow-100 text-yellow-800';
-      case PackageStatus.OUT_FOR_DELIVERY:
-        return 'bg-purple-100 text-purple-800';
-      case PackageStatus.PENDING:
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-red-100 text-red-800';
-    }
-  };
-
-  const getStatusText = (status: PackageStatus) => {
-    switch (status) {
-      case PackageStatus.PENDING:
-        return 'En attente';
-      case PackageStatus.SHIPPED:
-        return 'Expédié';
-      case PackageStatus.IN_TRANSIT:
-        return 'En transit';
-      case PackageStatus.CUSTOMS:
-        return 'En douane';
-      case PackageStatus.OUT_FOR_DELIVERY:
-        return 'En livraison';
-      case PackageStatus.DELIVERED:
-        return 'Livré';
-      case PackageStatus.LOST:
-        return 'Perdu';
-      case PackageStatus.RETURNED:
-        return 'Retourné';
-      default:
-        return status;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Chargement...</div>
-      </div>
-    );
-  }
-
+      
+  
   return (
     <div className="min-h-screen" style={{ backgroundColor: COLORS.primary.lightBlue }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -219,12 +236,34 @@ export default function AdminDashboard() {
                 Gérez les colis et suivez leurs expéditions
               </p>
               {isLoading ? (
-                <div className="flex flex-col justify-center items-center h-64 space-y-4">
+                <div className="flex flex-col justify-center items-center h-64 space-y-6">
                   <div className="relative">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent absolute top-0"></div>
+                    <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-200"></div>
+                    <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-600 border-t-transparent absolute top-0 flex items-center justify-center">
+                      <svg 
+                        className="w-8 h-8 text-blue-600" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        style={{
+                          animation: 'spin 2s linear infinite reverse',
+                        }}
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M21 16l-8-8-8 8M3 8l8 8 8-8m-9 3v10a2 2 0 002 2h14a2 2 0 002-2V11m-9-3l3-3m-3 3l-3-3" 
+                        />
+                      </svg>
+                    </div>
                   </div>
-                  <p className="text-gray-600 font-medium animate-pulse">Chargement des colis...</p>
+                  <div className="text-center space-y-2">
+                    <p className="text-gray-600 font-medium animate-pulse">Chargement des colis...</p>
+                    <p className="text-gray-500 text-sm animate-pulse" style={{ animationDelay: '0.5s' }}>
+                      Veuillez patienter pendant que nous récupérons vos données
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mt-4">
@@ -234,15 +273,7 @@ export default function AdminDashboard() {
               )}
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={handleLogout}
-                className="px-4 py-3 rounded-xl border border-red-300 text-red-600 font-semibold hover:bg-red-50 transition-all duration-200 flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Déconnexion
-              </button>
+              
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="px-6 py-3 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
@@ -277,25 +308,34 @@ export default function AdminDashboard() {
         )}
 
         {showEditForm && editingPackage && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightBlue }}>
-                <svg className="w-5 h-5" style={{ color: COLORS.primary.blue }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50">
+            <div className="fixed inset-0 overflow-y-auto z-50">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div className="fixed inset-0" aria-hidden="true" onClick={() => setShowEditForm(false)}></div>
+                <div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline" onClick={(e) => e.stopPropagation()}>
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: COLORS.primary.lightBlue }}>
+                        <svg className="w-5 h-5" style={{ color: COLORS.primary.blue }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </div>
+                      <h2 className="text-2xl font-bold" style={{ color: COLORS.primary.blue }}>
+                        Modifier le colis #{editingPackage.trackingNumber}
+                      </h2>
+                    </div>
+                    <EditPackageForm 
+                      package={editingPackage}
+                      onSubmit={handleEditPackage}
+                      onCancel={() => {
+                        setShowEditForm(false);
+                        setEditingPackage(null);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold" style={{ color: COLORS.primary.blue }}>
-                Modifier le colis #{editingPackage.trackingNumber}
-              </h2>
             </div>
-            <EditPackageForm 
-              package={editingPackage}
-              onSubmit={handleEditPackage}
-              onCancel={() => {
-                setShowEditForm(false);
-                setEditingPackage(null);
-              }}
-            />
           </div>
         )}
 
@@ -425,8 +465,8 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
+          <div>
+            <table className="w-full">
               <thead className="hidden lg:table-header-group">
                 <tr className="border-b border-gray-200" style={{ backgroundColor: COLORS.primary.lightBlue }}>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.primary.darkBlue }}>
@@ -456,13 +496,13 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {packages.length === 0 ? (
+                {currentPackages.length === 0 && !isLoading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                           <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0V5a2 2 0 01-2 2H6a2 2 0 01-2-2v3m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                           </svg>
                         </div>
                         <div>
@@ -483,8 +523,42 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                   </tr>
+                ) : isLoading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center">
+                      <div className="flex flex-col justify-center items-center space-y-6">
+                        <div className="relative">
+                          <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-200"></div>
+                          <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-600 border-t-transparent absolute top-0 flex items-center justify-center">
+                            <svg 
+                              className="w-8 h-8 text-blue-600" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                              style={{
+                                animation: 'spin 2s linear infinite reverse',
+                              }}
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M21 16l-8-8-8 8M3 8l8 8 8-8m-9 3v10a2 2 0 002 2h14a2 2 0 002-2V11m-9-3l3-3m-3 3l-3-3" 
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="text-center space-y-2">
+                          <p className="text-gray-600 font-medium animate-pulse">Chargement des colis...</p>
+                          <p className="text-gray-500 text-sm animate-pulse" style={{ animationDelay: '0.5s' }}>
+                            Veuillez patienter pendant que nous récupérons vos données
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
-                  packages.map((pkg, index) => (
+                  currentPackages.map((pkg, index) => (
                     <React.Fragment key={pkg.id}>
                       {/* Vue Desktop */}
                       <tr className="hidden lg:table-row hover:bg-gray-50 transition-colors duration-150" style={{ backgroundColor: index % 2 === 0 ? 'white' : COLORS.primary.lightBlue + '20' }}>
@@ -572,7 +646,7 @@ export default function AdminDashboard() {
                               </span>
                             </div>
                             
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-1 gap-3">
                               <div>
                                 <p className="text-xs text-gray-500 mb-1">Client</p>
                                 <p className="text-sm font-medium text-gray-900">{pkg.clientName}</p>
@@ -589,21 +663,17 @@ export default function AdminDashboard() {
                                 </p>
                               </div>
                               
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Poids & Prix</p>
-                                <p className="text-sm font-medium text-gray-900">{pkg.quantity} kg</p>
-                                <p className="text-sm font-bold text-gray-900">{pkg.totalPrice?.toLocaleString('fr-FR')} FCFA</p>
-                              </div>
-                              
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Quantité</p>
-                                <p className="text-sm font-medium text-gray-900">{pkg.quantity} kg</p>
-                                <p className="text-xs text-gray-500">{pkg.pricePerKg?.toLocaleString('fr-FR')} FCFA/kg</p>
-                              </div>
-                              
-                              <div>
-                                <p className="text-xs text-gray-500 mb-1">Total</p>
-                                <p className="text-sm font-bold text-gray-900">{pkg.totalPrice?.toLocaleString('fr-FR')} FCFA</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-1">Poids</p>
+                                  <p className="text-sm font-medium text-gray-900">{pkg.quantity} kg</p>
+                                  <p className="text-xs text-gray-500">{pkg.pricePerKg?.toLocaleString('fr-FR')} FCFA/kg</p>
+                                </div>
+                                
+                                <div>
+                                  <p className="text-xs text-gray-500 mb-1">Total</p>
+                                  <p className="text-sm font-bold text-gray-900">{pkg.totalPrice?.toLocaleString('fr-FR')} FCFA</p>
+                                </div>
                               </div>
                             </div>
                             
@@ -640,6 +710,53 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Affichage de {indexOfFirstItem + 1} à {Math.min(indexOfLastItem, packages.length)} sur {packages.length} colis
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Précédent
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {[...Array(totalPages)].map((_, index) => (
+                      <button
+                        key={index + 1}
+                        onClick={() => paginate(index + 1)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                          currentPage === index + 1
+                            ? 'text-white'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                        style={{
+                          backgroundColor: currentPage === index + 1 ? COLORS.primary.blue : undefined
+                        }}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1102,35 +1219,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     }));
   };
 
-  const getStatusColor = (status: PackageStatus) => {
-    switch (status) {
-      case PackageStatus.RECUE_PAR_TRANSITAIRE:
-        return 'bg-blue-100 text-blue-800';
-      case PackageStatus.EN_EXPEDITION:
-        return 'bg-yellow-100 text-yellow-800';
-      case PackageStatus.ARRIVEE:
-        return 'bg-green-100 text-green-800';
-      case PackageStatus.RECUPERATION:
-        return 'bg-purple-100 text-purple-800';
-      case PackageStatus.SHIPPED:
-        return 'bg-indigo-100 text-indigo-800';
-      case PackageStatus.IN_TRANSIT:
-        return 'bg-orange-100 text-orange-800';
-      case PackageStatus.CUSTOMS:
-        return 'bg-red-100 text-red-800';
-      case PackageStatus.OUT_FOR_DELIVERY:
-        return 'bg-teal-100 text-teal-800';
-      case PackageStatus.DELIVERED:
-        return 'bg-green-100 text-green-800';
-      case PackageStatus.LOST:
-        return 'bg-red-100 text-red-800';
-      case PackageStatus.RETURNED:
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Informations de base */}
