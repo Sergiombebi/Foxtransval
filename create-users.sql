@@ -2,7 +2,7 @@
 INSERT INTO users (id, email, name, password_hash, role, created_at)
 VALUES (
   gen_random_uuid(),
-  'admin@foxtransval.com',
+  'admin@trascolis.com',
   'Administrateur',
   'admin123', -- Mot de passe simple pour le test
   'admin',

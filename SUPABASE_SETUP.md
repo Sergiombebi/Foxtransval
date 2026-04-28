@@ -1,6 +1,6 @@
-# Configuration Supabase pour FoxTransval
+# Configuration Supabase pour TRAScolis
 
-Ce guide explique comment configurer la base de données Supabase pour l'application FoxTransval.
+Ce guide explique comment configurer la base de données Supabase pour l'application TRAScolis.
 
 ## Étapes de configuration
 
@@ -11,7 +11,7 @@ Ce guide explique comment configurer la base de données Supabase pour l'applica
 3. Cliquez sur "New Project"
 4. Choisissez votre organisation
 5. Configurez le projet :
-   - **Nom du projet**: `foxtransval`
+   - **Nom du projet**: `trascolis`
    - **Mot de passe de la base de données**: Choisissez un mot de passe sécurisé
    - **Région**: Choisissez la région la plus proche de vos utilisateurs
 6. Attendez que le projet soit créé (2-3 minutes)
@@ -49,7 +49,7 @@ Pour trouver ces valeurs :
 ### 5. Compte administrateur par défaut
 
 Le script SQL crée automatiquement un utilisateur admin :
-- **Email**: `admin@foxtransval.com`
+- **Email**: `admin@trascolis.com`
 - **Mot de passe**: `admin123`
 
 **Important**: Changez ce mot de passe après la première connexion!

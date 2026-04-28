@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  name: 'FOXtransval',
+  name: 'TRAScolis',
   description: 'Suivi de colis Chine-Cameroun',
   version: '1.0.0',
 } as const;

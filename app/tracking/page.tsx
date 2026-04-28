@@ -727,7 +727,7 @@ export default function TrackingPage() {
             </div>
             <div className="mt-6 p-4 bg-blue-100 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Besoin d'aide ?</strong> Contactez notre service client au +237 XXX XXX XXX ou par email à support@foxtransval.com
+                <strong>Besoin d'aide ?</strong> Contactez notre service client au +237 XXX XXX XXX ou par email à support@trascolis.com
               </p>
             </div>
           </div>

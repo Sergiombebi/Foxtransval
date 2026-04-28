@@ -1,5 +1,5 @@
 -- =============================================
--- FoxTransval Database Schema
+-- TRAScolis Database Schema
 -- =============================================
 
 -- Table des utilisateurs (pour le login)
@@ -87,7 +87,7 @@ CREATE TRIGGER update_packages_updated_at
 -- Insertion d'un utilisateur admin par défaut (mot de passe: admin123)
 INSERT INTO users (email, name, password_hash, role) 
 VALUES (
-    'admin@foxtransval.com', 
+    'admin@trascolis.com', 
     'Administrateur', 
     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6ukx.LFvO6', -- bcrypt hash de 'admin123'
     'admin'

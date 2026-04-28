@@ -15,7 +15,7 @@ async function insertUsers() {
       .from('users')
       .insert([
         {
-          email: 'admin@foxtransval.com',
+          email: 'admin@trascolis.com',
           name: 'Administrateur',
           password_hash: 'admin123',
           role: 'admin',

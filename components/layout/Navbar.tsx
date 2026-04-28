@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { COLORS } from '@/lib/constants'
 import styles from './Navbar.module.css'
 
 export function Navbar() {
@@ -49,7 +50,7 @@ export function Navbar() {
             <img src="/logo.png" alt="FOXtransval Logo" className="w-10 h-10 object-contain" />
           </div>
           <div className={styles.logoText}>
-            <span className={styles.logoBrand}>FOXtransval</span>
+            <span className={styles.logoBrand}><span style={{color: COLORS.primary.blue}}>TRAS</span><span style={{color: COLORS.primary.yellow}}>colis</span></span>
           </div>
         </Link>
 

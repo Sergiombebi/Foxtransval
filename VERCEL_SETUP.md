@@ -20,7 +20,7 @@ Environment Variable "NEXT_PUBLIC_SUPABASE_URL" references Secret "supabase_url"
 ### Étape 2 : Configurer Vercel
 
 1. Allez dans votre dashboard Vercel : https://vercel.com/dashboard
-2. Sélectionnez votre projet `Foxtransval`
+2. Sélectionnez votre projet `TRAScolis`
 3. Allez dans **Settings** → **Environment Variables**
 4. **Supprimez** d'abord les variables existantes qui référencent des secrets
 5. **Ajoutez** ces 3 nouvelles variables :

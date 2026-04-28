@@ -12,7 +12,7 @@ export default function Footer() {
                    style={{ backgroundColor: COLORS.primary.yellow }}>
                 <span className="text-gray-900 font-bold text-sm">FT</span>
               </div>
-              <span className="font-bold text-xl">FOXtransval</span>
+              <span className="font-bold text-xl"><span style={{color: COLORS.primary.blue}}>TRAS</span><span style={{color: COLORS.primary.yellow}}>colis</span></span>
             </div>
             <p className="text-gray-300 max-w-md">
               Votre partenaire de confiance pour le suivi de colis entre la Chine et le Cameroun. 
@@ -43,7 +43,7 @@ export default function Footer() {
               Contact
             </h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: contact@foxtransval.com</li>
+              <li>Email: contact@trascolis.com</li>
               <li>Téléphone: +237 123 456 789</li>
               <li>Yaoundé, Cameroun</li>
             </ul>
@@ -53,7 +53,7 @@ export default function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 FOXtransval. Tous droits réservés.
+              © 2024 TRAScolis. Tous droits réservés.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">

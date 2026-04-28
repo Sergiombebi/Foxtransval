@@ -44,7 +44,7 @@ async function checkUsers() {
     const { data: admin, error: adminError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', 'admin@foxtransval.com')
+      .eq('email', 'admin@trascolis.com')
       .single();
     
     if (adminError) {

@@ -7,6 +7,30 @@ import { COLORS, ROUTES } from '@/lib/constants';
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  
+  // Pré-générer les particules avec des valeurs fixes pour éviter l'erreur d'hydratation
+  const [particles] = useState(() => [
+    { id: 0, left: 10, top: 15, delay: 0, duration: 6 },
+    { id: 1, left: 85, top: 20, delay: 1.5, duration: 8 },
+    { id: 2, left: 25, top: 70, delay: 0.5, duration: 5 },
+    { id: 3, left: 60, top: 40, delay: 2, duration: 7 },
+    { id: 4, left: 15, top: 85, delay: 1, duration: 6 },
+    { id: 5, left: 75, top: 60, delay: 2.5, duration: 4 },
+    { id: 6, left: 40, top: 25, delay: 0.8, duration: 5.5 },
+    { id: 7, left: 90, top: 35, delay: 1.2, duration: 6.5 },
+    { id: 8, left: 30, top: 50, delay: 3, duration: 4.5 },
+    { id: 9, left: 55, top: 75, delay: 0.3, duration: 7.5 },
+    { id: 10, left: 20, top: 30, delay: 1.8, duration: 5.2 },
+    { id: 11, left: 80, top: 45, delay: 2.2, duration: 6.8 },
+    { id: 12, left: 45, top: 80, delay: 0.7, duration: 4.8 },
+    { id: 13, left: 70, top: 15, delay: 2.8, duration: 5.8 },
+    { id: 14, left: 35, top: 55, delay: 1.3, duration: 6.3 },
+    { id: 15, left: 95, top: 70, delay: 0.2, duration: 4.2 },
+    { id: 16, left: 50, top: 10, delay: 2.7, duration: 7.2 },
+    { id: 17, left: 65, top: 90, delay: 1.7, duration: 5.7 },
+    { id: 18, left: 5, top: 40, delay: 3.2, duration: 6.2 },
+    { id: 19, left: 88, top: 85, delay: 0.9, duration: 4.9 }
+  ]);
 
   useEffect(() => {
     setIsVisible(true);
@@ -47,7 +71,7 @@ export default function Home() {
 
       {/* Particules flottantes */}
       <div className="absolute inset-0">
-        {particles.map((particle) => (
+        {particles.map((particle: any) => (
           <div
             key={particle.id}
             className="absolute w-2 h-2 rounded-full opacity-30 animate-pulse"
@@ -85,7 +109,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto animate-fade-in">
-            FOXtransval vous offre un suivi transparent et fiable de vos expéditions. 
+            TRAScolis vous offre un suivi transparent et fiable de vos expéditions. 
             Restez informé en temps réel de l'état d'avancement de vos colis.
           </p>
           
@@ -179,7 +203,7 @@ export default function Home() {
             Prêt à commencer ?
           </h2>
           <p className="text-lg text-gray-600 mb-6">
-            Rejoignez les centaines d'utilisateurs qui font confiance à FOXtransval
+            Rejoignez les centaines d'utilisateurs qui font confiance à TRAScolis
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
