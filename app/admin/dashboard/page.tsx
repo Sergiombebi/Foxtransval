@@ -142,12 +142,21 @@ export default function AdminDashboard() {
   // Supprimer un colis
   const handleDeletePackage = async (packageId: string) => {
     try {
+      // Supprimer d'abord de l'état local pour une mise à jour immédiate
+      const originalPackages = [...packages];
+      setPackages(packages.filter(pkg => pkg.id !== packageId));
+      
+      // Puis supprimer de la base de données
       await deletePackage(packageId);
       toast.success('Colis supprimé avec succès!');
+      
+      // Recharger pour s'assurer que tout est synchronisé
       await loadPackages();
     } catch (err) {
       console.error('Erreur générale suppression colis:', err);
       toast.error('Erreur lors de la suppression du colis');
+      // En cas d'erreur, restaurer l'état original
+      await loadPackages();
     }
   };
 
@@ -841,7 +850,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.clientName}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
           </div>
@@ -856,7 +865,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.clientPhone}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
           </div>
@@ -881,7 +890,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.nature}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
             >
               <option value="">Sélectionner la nature</option>
               <option value="Électroniques">Électroniques</option>
@@ -904,7 +913,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.status}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
             >
               <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par le transitaire</option>
               <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
@@ -927,7 +936,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.quantity}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
           </div>
@@ -943,7 +952,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               value={formData.pricePerKg}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
           </div>
@@ -980,7 +989,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
                 value={formData.departureCountry}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
             </div>
@@ -998,7 +1007,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
                   setFormData(prev => ({ ...prev, departureDate: date }));
                 }}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               />
             </div>
           </div>
@@ -1014,7 +1023,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
                 value={formData.arrivalCountry}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
             </div>
@@ -1029,7 +1038,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
                 value={formData.arrivalCity}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
             </div>
@@ -1049,7 +1058,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               setFormData(prev => ({ ...prev, arrivalDate: date }));
             }}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
           />
         </div>
       </div>
@@ -1237,7 +1246,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Description du colis"
             />
           </div>
@@ -1250,7 +1259,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="sender"
               value={formData.sender}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Nom de l'expéditeur"
             />
           </div>
@@ -1263,7 +1272,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="recipient"
               value={formData.recipient}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Nom du destinataire"
             />
           </div>
@@ -1276,7 +1285,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="currentLocation"
               value={formData.currentLocation}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Localisation actuelle"
             />
           </div>
@@ -1298,7 +1307,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="origin"
               value={formData.origin}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Pays de départ"
             />
           </div>
@@ -1311,7 +1320,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="destination"
               value={formData.destination}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               placeholder="Pays de destination"
             />
           </div>
@@ -1324,7 +1333,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="departureDate"
               value={formData.departureDate ? new Date(formData.departureDate).toISOString().split('T')[0] : ''}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
           <div>
@@ -1336,7 +1345,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="estimatedDelivery"
               value={formData.estimatedDelivery ? new Date(formData.estimatedDelivery).toISOString().split('T')[0] : ''}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
         </div>
@@ -1357,7 +1366,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="clientName"
               value={formData.clientName}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1370,7 +1379,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="clientPhone"
               value={formData.clientPhone}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1383,7 +1392,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="departureCountry"
               value={formData.departureCountry}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1396,7 +1405,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="arrivalCountry"
               value={formData.arrivalCountry}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1409,7 +1418,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="arrivalCity"
               value={formData.arrivalCity}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1422,7 +1431,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="arrivalDate"
               value={formData.arrivalDate ? new Date(formData.arrivalDate).toISOString().split('T')[0] : ''}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1443,7 +1452,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="nature"
               value={formData.nature}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             >
               <option value="Électroniques">Électroniques</option>
               <option value="Vêtements">Vêtements</option>
@@ -1461,7 +1470,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             >
               <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par transitaire</option>
               <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
@@ -1485,7 +1494,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               onChange={handleChange}
               min="0.1"
               step="0.1"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
                   </div>
@@ -1508,7 +1517,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               onChange={handleChange}
               min="0.1"
               step="0.1"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>
@@ -1522,7 +1531,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.pricePerKg}
               onChange={handleChange}
               min="0"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
               required
             />
           </div>

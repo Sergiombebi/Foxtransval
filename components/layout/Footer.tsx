@@ -43,9 +43,10 @@ export default function Footer() {
               Contact
             </h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: contact@trascolis.com</li>
-              <li>Téléphone: +237 123 456 789</li>
+              <li>Email: foxtransval@gmail.com</li>
+              <li>Téléphone: +237 692-95-70-69</li>
               <li>Yaoundé, Cameroun</li>
+              
             </ul>
           </div>
         </div>

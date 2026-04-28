@@ -249,7 +249,7 @@ export default function TrackingPage() {
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
                 placeholder="Entrez votre numéro de suivi (ex: FOX-2024-01-01)"
-                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-all duration-300"
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg text-black transition-all duration-300"
                 style={{ borderColor: COLORS.primary.lightBlue }}
                 required
               />
@@ -319,12 +319,6 @@ export default function TrackingPage() {
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4.586 4.586a1 1 0 001.414-1.414l-2-2z" clipRule="evenodd" />
                       </svg>
                       Vérifiez que le numéro de suivi est correct
-                    </li>
-                    <li className="flex items-start">
-                      <svg className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4.586 4.586a1 1 0 001.414-1.414l-2-2z" clipRule="evenodd" />
-                      </svg>
-                      Essayez avec l'un des numéros de test ci-dessous
                     </li>
                     <li className="flex items-start">
                       <svg className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -727,7 +721,7 @@ export default function TrackingPage() {
             </div>
             <div className="mt-6 p-4 bg-blue-100 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Besoin d'aide ?</strong> Contactez notre service client au +237 XXX XXX XXX ou par email à support@trascolis.com
+                <strong>Besoin d'aide ?</strong> Contactez notre service client au +237 692-95-70-69 ou par email à foxtransval@gmail.com
               </p>
             </div>
           </div>
