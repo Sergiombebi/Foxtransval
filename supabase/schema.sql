@@ -42,8 +42,8 @@ CREATE TABLE packages (
     client_name VARCHAR(255) NOT NULL,
     client_phone VARCHAR(50) NOT NULL,
     nature VARCHAR(255) NOT NULL, -- Nature du colis (électroniques, vêtements, etc.)
-    departure_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    arrival_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    departure_date TIMESTAMP WITH TIME ZONE,
+    arrival_date TIMESTAMP WITH TIME ZONE,
     quantity DECIMAL(10, 2) NOT NULL, -- en kg
     price_per_kg DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,

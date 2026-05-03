@@ -21,8 +21,8 @@ export interface Package {
   clientName: string;
   clientPhone: string;
   nature: string;
-  departureDate: Date;
-  arrivalDate: Date;
+  departureDate?: Date;
+  arrivalDate?: Date;
   quantity: number; // en kg
   pricePerKg: number;
   totalPrice: number;

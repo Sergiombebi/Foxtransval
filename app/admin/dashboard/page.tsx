@@ -788,7 +788,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     status: PackageStatus.RECUE_PAR_TRANSITAIRE,
     weight: 0,
     dimensions: { length: 0, width: 0, height: 0 },
-    estimatedDelivery: new Date(),
+    estimatedDelivery: undefined,
     currentLocation: '',
     // Nouveaux champs
     clientName: '',
@@ -797,8 +797,8 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     quantity: 1,
     pricePerKg: 1000,
     totalPrice: 0,
-    departureDate: new Date(),
-    arrivalDate: new Date(),
+    departureDate: undefined,
+    arrivalDate: undefined,
     departureCountry: 'France',
     arrivalCountry: 'Cote dIvoire',
     arrivalCity: 'Abidjan',
@@ -842,14 +842,13 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Nom du client *
+              Nom du client
             </label>
             <input
               type="text"
               name="clientName"
               value={formData.clientName}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
@@ -857,14 +856,13 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Numéro de téléphone *
+              Numéro de téléphone
             </label>
             <input
               type="tel"
               name="clientPhone"
               value={formData.clientPhone}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
@@ -883,13 +881,12 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Nature du colis *
+              Nature du colis
             </label>
             <select
               name="nature"
               value={formData.nature}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
             >
               <option value="">Sélectionner la nature</option>
@@ -906,13 +903,12 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Statut *
+              Statut
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
             >
               <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par le transitaire</option>
@@ -927,7 +923,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Quantité (kg) *
+              Quantité (kg)
             </label>
             <input
               type="number"
@@ -935,7 +931,6 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
@@ -943,7 +938,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Prix par kilo (FCFA) *
+              Prix par kilo (FCFA)
             </label>
             <input
               type="number"
@@ -951,7 +946,6 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               name="pricePerKg"
               value={formData.pricePerKg}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               placeholder=""
             />
@@ -981,14 +975,13 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Pays de départ *
+                Pays de départ
               </label>
               <input
                 type="text"
                 name="departureCountry"
                 value={formData.departureCountry}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
@@ -996,17 +989,16 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
             
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Date de départ *
+                Date de départ
               </label>
               <input
                 type="date"
                 name="departureDate"
-                value={formData.departureDate instanceof Date ? formData.departureDate.toISOString().split('T')[0] : ''}
+                value={formData.departureDate ? formData.departureDate.toISOString().split('T')[0] : ''}
                 onChange={(e) => {
-                  const date = new Date(e.target.value);
+                  const date = e.target.value ? new Date(e.target.value) : undefined;
                   setFormData(prev => ({ ...prev, departureDate: date }));
                 }}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
               />
             </div>
@@ -1015,14 +1007,13 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Pays d'arrivée *
+                Pays d'arrivée
               </label>
               <input
                 type="text"
                 name="arrivalCountry"
                 value={formData.arrivalCountry}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
@@ -1030,14 +1021,13 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
             
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Ville d'arrivée *
+                Ville d'arrivée
               </label>
               <input
                 type="text"
                 name="arrivalCity"
                 value={formData.arrivalCity}
                 onChange={handleChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
                 placeholder=""
               />
@@ -1047,17 +1037,16 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
         
         <div className="mt-6 space-y-2">
           <label className="block text-sm font-semibold text-gray-700">
-            Date d'arrivée estimée *
+            Date d'arrivée estimée
           </label>
           <input
             type="date"
             name="arrivalDate"
-            value={formData.arrivalDate instanceof Date ? formData.arrivalDate.toISOString().split('T')[0] : ''}
+            value={formData.arrivalDate ? formData.arrivalDate.toISOString().split('T')[0] : ''}
             onChange={(e) => {
-              const date = new Date(e.target.value);
+              const date = e.target.value ? new Date(e.target.value) : undefined;
               setFormData(prev => ({ ...prev, arrivalDate: date }));
             }}
-            required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
           />
         </div>
@@ -1223,7 +1212,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     setFormData(prev => ({
       ...prev,
       [name]: (name === 'quantity' || name === 'pricePerKg' || name === 'weight') ? parseFloat(value) || 0 : 
-              name === 'estimatedDelivery' || name === 'departureDate' || name === 'arrivalDate' ? new Date(value) :
+              (name === 'estimatedDelivery' || name === 'departureDate' || name === 'arrivalDate') ? (value ? new Date(value) : undefined) :
               value
     }));
   };
@@ -1367,7 +1356,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.clientName}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1380,7 +1368,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.clientPhone}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1393,7 +1380,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.departureCountry}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1406,7 +1392,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.arrivalCountry}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1419,7 +1404,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.arrivalCity}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1432,7 +1416,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               value={formData.arrivalDate ? new Date(formData.arrivalDate).toISOString().split('T')[0] : ''}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
         </div>
@@ -1518,7 +1501,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               min="0.1"
               step="0.1"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
@@ -1532,7 +1514,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               onChange={handleChange}
               min="0"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-              required
             />
           </div>
           <div>
