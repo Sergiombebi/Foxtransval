@@ -21,6 +21,7 @@ export interface Package {
   clientName: string;
   clientPhone: string;
   nature: string;
+  packageType?: 'express' | 'normal' | 'batterie';
   departureDate?: Date;
   arrivalDate?: Date;
   quantity: number; // en kg

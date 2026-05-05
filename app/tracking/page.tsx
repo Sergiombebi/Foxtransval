@@ -64,7 +64,7 @@ export default function TrackingPage() {
           status: data.status,
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at || data.created_at),
-          estimatedDelivery: data.arrival_date ? new Date(data.arrival_date) : undefined,
+          estimatedDelivery: data.arrival_date && data.arrival_date !== '' ? new Date(data.arrival_date) : undefined,
           currentLocation: data.arrival_city,
           weight: data.quantity,
           dimensions: { length: 0, width: 0, height: 0 },
@@ -72,8 +72,9 @@ export default function TrackingPage() {
           clientName: data.client_name,
           clientPhone: data.client_phone,
           nature: data.nature,
-          departureDate: data.departure_date ? new Date(data.departure_date) : undefined,
-          arrivalDate: data.arrival_date ? new Date(data.arrival_date) : undefined,
+          packageType: data.package_type,
+          departureDate: data.departure_date && data.departure_date !== '' ? new Date(data.departure_date) : undefined,
+          arrivalDate: data.arrival_date && data.arrival_date !== '' ? new Date(data.arrival_date) : undefined,
           quantity: data.quantity,
           pricePerKg: data.price_per_kg,
           totalPrice: data.total_price,
@@ -556,6 +557,12 @@ export default function TrackingPage() {
                     <div className="flex justify-between items-center py-2 border-b border-yellow-100">
                       <span className="text-gray-600 text-sm font-medium">Nature:</span>
                       <span className="font-semibold text-gray-900">{searchResult.nature}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-yellow-100">
+                      <span className="text-gray-600 text-sm font-medium">Type:</span>
+                      <span className="font-semibold text-gray-900">
+                        {searchResult.packageType ? searchResult.packageType.charAt(0).toUpperCase() + searchResult.packageType.slice(1) : 'N/A'}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center py-2">
                       <span className="text-gray-600 text-sm font-medium">Quantité:</span>

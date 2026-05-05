@@ -488,6 +488,9 @@ export default function AdminDashboard() {
                     Téléphone
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.primary.darkBlue }}>
+                    Nature
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.primary.darkBlue }}>
                     Trajet
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.primary.darkBlue }}>
@@ -589,11 +592,19 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm space-y-1">
+                            <div className="font-medium text-gray-900">{pkg.nature}</div>
+                            <div className="text-xs text-gray-500">
+                              Type: {pkg.packageType ? pkg.packageType.charAt(0).toUpperCase() + pkg.packageType.slice(1) : 'N/A'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm space-y-1">
                             <div className="font-medium text-gray-900">{pkg.departureCountry}</div>
                             <div className="text-xs text-gray-500">→ {pkg.arrivalCountry}, {pkg.arrivalCity}</div>
                             <div className="text-xs text-blue-600">
-                              {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : ''} - 
-                              {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : ''}
+                              {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : 'N/A'} - 
+                              {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : 'N/A'}
                             </div>
                           </div>
                         </td>
@@ -663,12 +674,20 @@ export default function AdminDashboard() {
                               </div>
                               
                               <div>
+                                <p className="text-xs text-gray-500 mb-1">Nature</p>
+                                <p className="text-sm font-medium text-gray-900">{pkg.nature}</p>
+                                <p className="text-xs text-gray-500">
+                                  Type: {pkg.packageType ? pkg.packageType.charAt(0).toUpperCase() + pkg.packageType.slice(1) : 'N/A'}
+                                </p>
+                              </div>
+                              
+                              <div>
                                 <p className="text-xs text-gray-500 mb-1">Trajet</p>
                                 <p className="text-sm font-medium text-gray-900">{pkg.departureCountry}</p>
                                 <p className="text-xs text-gray-500">→ {pkg.arrivalCountry}, {pkg.arrivalCity}</p>
                                 <p className="text-xs text-blue-600">
-                                  {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : ''} - 
-                                  {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : ''}
+                                  {pkg.departureDate instanceof Date ? pkg.departureDate.toLocaleDateString('fr-FR') : 'N/A'} - 
+                                  {pkg.arrivalDate instanceof Date ? pkg.arrivalDate.toLocaleDateString('fr-FR') : 'N/A'}
                                 </p>
                               </div>
                               
@@ -794,6 +813,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     clientName: '',
     clientPhone: '',
     nature: 'Électroniques',
+    packageType: undefined,
     quantity: 1,
     pricePerKg: 1000,
     totalPrice: 0,
@@ -898,6 +918,23 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               <option value="Cosmétiques">Cosmétiques</option>
               <option value="Sports et Loisirs">Sports et Loisirs</option>
               <option value="Autre">Autre</option>
+            </select>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Type de colis
+            </label>
+            <select
+              name="packageType"
+              value={formData.packageType || ''}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
+            >
+              <option value="">Sélectionner le type</option>
+              <option value="express">Express</option>
+              <option value="normal">Normal</option>
+              <option value="batterie">Batterie</option>
             </select>
           </div>
           
@@ -1181,6 +1218,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     clientName: pkg.clientName,
     clientPhone: pkg.clientPhone,
     nature: pkg.nature,
+    packageType: pkg.packageType,
     departureDate: pkg.departureDate,
     arrivalDate: pkg.arrivalDate,
     quantity: pkg.quantity,
@@ -1443,6 +1481,22 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               <option value="Alimentaires">Alimentaires</option>
               <option value="Documents">Documents</option>
               <option value="Autres">Autres</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de colis
+            </label>
+            <select
+              name="packageType"
+              value={formData.packageType || ''}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+            >
+              <option value="">Sélectionner le type</option>
+              <option value="express">Express</option>
+              <option value="normal">Normal</option>
+              <option value="batterie">Batterie</option>
             </select>
           </div>
           <div>

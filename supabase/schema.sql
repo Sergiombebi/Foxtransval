@@ -42,6 +42,7 @@ CREATE TABLE packages (
     client_name VARCHAR(255) NOT NULL,
     client_phone VARCHAR(50) NOT NULL,
     nature VARCHAR(255) NOT NULL, -- Nature du colis (électroniques, vêtements, etc.)
+    package_type VARCHAR(20) CHECK (package_type IN ('express', 'normal', 'batterie')), -- Type de colis
     departure_date TIMESTAMP WITH TIME ZONE,
     arrival_date TIMESTAMP WITH TIME ZONE,
     quantity DECIMAL(10, 2) NOT NULL, -- en kg
