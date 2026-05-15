@@ -798,6 +798,10 @@ interface PackageFormProps {
 
 function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCustomNature, setShowCustomNature] = useState(false);
+  const [customNatureValue, setCustomNatureValue] = useState('');
+  const [showCustomPackageType, setShowCustomPackageType] = useState(false);
+  const [customPackageTypeValue, setCustomPackageTypeValue] = useState('');
   const [formData, setFormData] = useState<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>({
     description: '',
     sender: '',
@@ -903,39 +907,126 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
             <label className="block text-sm font-semibold text-gray-700">
               Nature du colis
             </label>
-            <select
-              name="nature"
-              value={formData.nature}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
-            >
-              <option value="">Sélectionner la nature</option>
-              <option value="Électroniques">Électroniques</option>
-              <option value="Vêtements">Vêtements</option>
-              <option value="Alimentaires">Alimentaires</option>
-              <option value="Mobilier">Mobilier</option>
-              <option value="Livres">Livres</option>
-              <option value="Cosmétiques">Cosmétiques</option>
-              <option value="Sports et Loisirs">Sports et Loisirs</option>
-              <option value="Autre">Autre</option>
-            </select>
+            {!showCustomNature ? (
+              <div className="space-y-2">
+                <select
+                  name="nature"
+                  value={formData.nature}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setShowCustomNature(true);
+                      setCustomNatureValue('');
+                      setFormData(prev => ({ ...prev, nature: '' }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
+                >
+                  <option value="custom" className="font-semibold text-blue-600">✏️ Saisir une valeur personnalisée</option>
+                  <option value="">Sélectionner la nature</option>
+                  <option value="Électroniques">Électroniques</option>
+                  <option value="Vêtements">Vêtements</option>
+                  <option value="Alimentaires">Alimentaires</option>
+                  <option value="Mobilier">Mobilier</option>
+                  <option value="Livres">Livres</option>
+                  <option value="Cosmétiques">Cosmétiques</option>
+                  <option value="Sports et Loisirs">Sports et Loisirs</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customNatureValue}
+                    onChange={(e) => {
+                      setCustomNatureValue(e.target.value);
+                      setFormData(prev => ({ ...prev, nature: e.target.value }));
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
+                    placeholder="Entrez la nature du colis"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomNature(false);
+                      setCustomNatureValue('');
+                      setFormData(prev => ({ ...prev, nature: 'Électroniques' }));
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-600"
+                    title="Revenir à la liste"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">Cliquez sur l'icône pour revenir à la liste prédéfinie</p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
               Type de colis
             </label>
-            <select
-              name="packageType"
-              value={formData.packageType || ''}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
-            >
-              <option value="">Sélectionner le type</option>
-              <option value="express">Express</option>
-              <option value="normal">Normal</option>
-              <option value="batterie">Batterie</option>
-            </select>
+            {!showCustomPackageType ? (
+              <div className="space-y-2">
+                <select
+                  name="packageType"
+                  value={formData.packageType || ''}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setShowCustomPackageType(true);
+                      setCustomPackageTypeValue('');
+                      setFormData(prev => ({ ...prev, packageType: undefined }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
+                >
+                  <option value="custom" className="font-semibold text-blue-600">✏️ Saisir une valeur personnalisée</option>
+                  <option value="">Sélectionner le type</option>
+                  <option value="express">Express</option>
+                  <option value="normal">Normal</option>
+                  <option value="batterie">Batterie</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customPackageTypeValue}
+                    onChange={(e) => {
+                      setCustomPackageTypeValue(e.target.value);
+                      setFormData(prev => ({ ...prev, packageType: e.target.value as any }));
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
+                    placeholder="Entrez le type de colis"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomPackageType(false);
+                      setCustomPackageTypeValue('');
+                      setFormData(prev => ({ ...prev, packageType: undefined }));
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-600"
+                    title="Revenir à la liste"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">Cliquez sur l'icône pour revenir à la liste prédéfinie</p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -1204,6 +1295,10 @@ interface EditPackageFormProps {
 
 function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCustomNature, setShowCustomNature] = useState(false);
+  const [customNatureValue, setCustomNatureValue] = useState('');
+  const [showCustomPackageType, setShowCustomPackageType] = useState(false);
+  const [customPackageTypeValue, setCustomPackageTypeValue] = useState('');
   const [formData, setFormData] = useState<Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>>({
     description: pkg.description,
     sender: pkg.sender,
@@ -1234,6 +1329,21 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     const total = (formData.quantity || 0) * (formData.pricePerKg || 0);
     setFormData(prev => ({ ...prev, totalPrice: total }));
   }, [formData.quantity, formData.pricePerKg]);
+
+  // Vérifier si la nature est personnalisée au chargement
+  useEffect(() => {
+    const predefinedNatures = ['Électroniques', 'Vêtements', 'Cosmétiques', 'Alimentaires', 'Documents', 'Autres'];
+    if (pkg.nature && !predefinedNatures.includes(pkg.nature)) {
+      setShowCustomNature(true);
+      setCustomNatureValue(pkg.nature);
+    }
+    
+    const predefinedPackageTypes = ['express', 'normal', 'batterie'];
+    if (pkg.packageType && !predefinedPackageTypes.includes(pkg.packageType)) {
+      setShowCustomPackageType(true);
+      setCustomPackageTypeValue(pkg.packageType);
+    }
+  }, [pkg.nature, pkg.packageType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1464,77 +1574,169 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
         <h3 className="text-lg font-semibold mb-4" style={{ color: COLORS.primary.blue }}>
           Détails du colis
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nature du colis
             </label>
-            <select
-              name="nature"
-              value={formData.nature}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-            >
-              <option value="Électroniques">Électroniques</option>
-              <option value="Vêtements">Vêtements</option>
-              <option value="Cosmétiques">Cosmétiques</option>
-              <option value="Alimentaires">Alimentaires</option>
-              <option value="Documents">Documents</option>
-              <option value="Autres">Autres</option>
-            </select>
+            {!showCustomNature ? (
+              <div className="space-y-2">
+                <select
+                  name="nature"
+                  value={formData.nature}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setShowCustomNature(true);
+                      setCustomNatureValue('');
+                      setFormData(prev => ({ ...prev, nature: '' }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                >
+                  <option value="custom" className="font-semibold text-blue-600">✏️ Saisir une valeur personnalisée</option>
+                  <option value="Électroniques">Électroniques</option>
+                  <option value="Vêtements">Vêtements</option>
+                  <option value="Cosmétiques">Cosmétiques</option>
+                  <option value="Alimentaires">Alimentaires</option>
+                  <option value="Documents">Documents</option>
+                  <option value="Autres">Autres</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customNatureValue}
+                    onChange={(e) => {
+                      setCustomNatureValue(e.target.value);
+                      setFormData(prev => ({ ...prev, nature: e.target.value }));
+                    }}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                    placeholder="Entrez la nature du colis"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomNature(false);
+                      setCustomNatureValue('');
+                      setFormData(prev => ({ ...prev, nature: 'Électroniques' }));
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-600"
+                    title="Revenir à la liste"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">Cliquez sur l'icône pour revenir à la liste prédéfinie</p>
+              </div>
+            )}
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Type de colis
             </label>
-            <select
-              name="packageType"
-              value={formData.packageType || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-            >
-              <option value="">Sélectionner le type</option>
-              <option value="express">Express</option>
-              <option value="normal">Normal</option>
-              <option value="batterie">Batterie</option>
-            </select>
+            {!showCustomPackageType ? (
+              <div className="space-y-2">
+                <select
+                  name="packageType"
+                  value={formData.packageType || ''}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setShowCustomPackageType(true);
+                      setCustomPackageTypeValue('');
+                      setFormData(prev => ({ ...prev, packageType: undefined }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                >
+                  <option value="custom" className="font-semibold text-blue-600">✏️ Saisir une valeur personnalisée</option>
+                  <option value="">Sélectionner le type</option>
+                  <option value="express">Express</option>
+                  <option value="normal">Normal</option>
+                  <option value="batterie">Batterie</option>
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customPackageTypeValue}
+                    onChange={(e) => {
+                      setCustomPackageTypeValue(e.target.value);
+                      setFormData(prev => ({ ...prev, packageType: e.target.value as any }));
+                    }}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                    placeholder="Entrez le type de colis"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCustomPackageType(false);
+                      setCustomPackageTypeValue('');
+                      setFormData(prev => ({ ...prev, packageType: undefined }));
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-600"
+                    title="Revenir à la liste"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">Cliquez sur l'icône pour revenir à la liste prédéfinie</p>
+              </div>
+            )}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-            >
-              <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par transitaire</option>
-              <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
-              <option value={PackageStatus.ARRIVEE}>Arrivé</option>
-              <option value={PackageStatus.RECUPERATION}>En récupération</option>
-            </select>
-            <div className="mt-2">
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(formData.status || PackageStatus.PENDING)}`}>
-                Statut actuel
-              </span>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Statut
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+              >
+                <option value={PackageStatus.RECUE_PAR_TRANSITAIRE}>Reçu par transitaire</option>
+                <option value={PackageStatus.EN_EXPEDITION}>En expédition</option>
+                <option value={PackageStatus.ARRIVEE}>Arrivé</option>
+                <option value={PackageStatus.RECUPERATION}>En récupération</option>
+              </select>
+              <div className="mt-2">
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(formData.status || PackageStatus.PENDING)}`}>
+                  Statut actuel
+                </span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Poids (kg)
+              </label>
+              <input
+                type="number"
+                name="weight"
+                value={formData.weight}
+                onChange={handleChange}
+                min="0.1"
+                step="0.1"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+              />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Poids (kg)
-            </label>
-            <input
-              type="number"
-              name="weight"
-              value={formData.weight}
-              onChange={handleChange}
-              min="0.1"
-              step="0.1"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-            />
-          </div>
-                  </div>
+        </div>
       </div>
 
       {/* Prix */}
