@@ -7,6 +7,7 @@ import { COLORS } from '@/lib/constants';
 import { LoginCredentials } from '@/types';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import bcrypt from 'bcryptjs';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -40,9 +41,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Vérification du mot de passe
-      // Pour le développement, comparaison simple
-      if (credentials.password !== userData.password_hash) {
+      // Vérification du mot de passe avec bcrypt
+      const isPasswordValid = await bcrypt.compare(credentials.password, userData.password_hash);
+      
+      if (!isPasswordValid) {
         toast.error('Email ou mot de passe incorrect');
         return;
       }
