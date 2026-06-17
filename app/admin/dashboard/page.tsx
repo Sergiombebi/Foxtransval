@@ -802,6 +802,8 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
   const [customNatureValue, setCustomNatureValue] = useState('');
   const [showCustomPackageType, setShowCustomPackageType] = useState(false);
   const [customPackageTypeValue, setCustomPackageTypeValue] = useState('');
+  const [qtyDisplay, setQtyDisplay] = useState('');
+  const [priceDisplay, setPriceDisplay] = useState('');
   const [formData, setFormData] = useState<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>({
     description: '',
     sender: '',
@@ -818,8 +820,8 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     clientPhone: '',
     nature: 'Électroniques',
     packageType: undefined,
-    quantity: 1,
-    pricePerKg: 1000,
+    quantity: 0,
+    pricePerKg: 0,
     totalPrice: 0,
     departureDate: undefined,
     arrivalDate: undefined,
@@ -828,12 +830,6 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     arrivalCity: 'Abidjan',
     packageImage: ''
   });
-
-  // Calculer le total automatiquement
-  useEffect(() => {
-    const total = formData.quantity * formData.pricePerKg;
-    setFormData(prev => ({ ...prev, totalPrice: total }));
-  }, [formData.quantity, formData.pricePerKg]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -849,7 +845,7 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'weight' || name === 'quantity' || name === 'pricePerKg') ? parseFloat(value) || 0 : value
+      [name]: value
     }));
   };
 
@@ -1054,13 +1050,21 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               Quantité (kg)
             </label>
             <input
-              type="number"
-              step="0.1"
+              type="text"
+              inputMode="decimal"
               name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
+              value={qtyDisplay}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[\d.,]*$/.test(val) || val === '') {
+                  setQtyDisplay(val);
+                  const num = parseFloat(val.replace(',', '.')) || 0;
+                  const ppk = parseFloat(priceDisplay.replace(',', '.')) || 0;
+                  setFormData(prev => ({ ...prev, quantity: num, totalPrice: num * ppk }));
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
-              placeholder=""
+              placeholder="Ex: 0,5"
             />
           </div>
           
@@ -1069,13 +1073,21 @@ function PackageForm({ onSubmit, onCancel }: PackageFormProps) {
               Prix par kilo (FCFA)
             </label>
             <input
-              type="number"
-              step="100"
+              type="text"
+              inputMode="decimal"
               name="pricePerKg"
-              value={formData.pricePerKg}
-              onChange={handleChange}
+              value={priceDisplay}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[\d.,]*$/.test(val) || val === '') {
+                  setPriceDisplay(val);
+                  const ppk = parseFloat(val.replace(',', '.')) || 0;
+                  const qty = parseFloat(qtyDisplay.replace(',', '.')) || 0;
+                  setFormData(prev => ({ ...prev, pricePerKg: ppk, totalPrice: qty * ppk }));
+                }
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-black"
-              placeholder=""
+              placeholder="Ex: 1000"
             />
           </div>
         </div>
@@ -1299,6 +1311,8 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
   const [customNatureValue, setCustomNatureValue] = useState('');
   const [showCustomPackageType, setShowCustomPackageType] = useState(false);
   const [customPackageTypeValue, setCustomPackageTypeValue] = useState('');
+  const [qtyDisplay, setQtyDisplay] = useState(String(pkg.quantity ?? ''));
+  const [priceDisplay, setPriceDisplay] = useState(String(pkg.pricePerKg ?? ''));
   const [formData, setFormData] = useState<Partial<Omit<Package, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>>({
     description: pkg.description,
     sender: pkg.sender,
@@ -1323,12 +1337,6 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     arrivalCountry: pkg.arrivalCountry,
     arrivalCity: pkg.arrivalCity
   });
-
-  // Calculer le total automatiquement
-  useEffect(() => {
-    const total = (formData.quantity || 0) * (formData.pricePerKg || 0);
-    setFormData(prev => ({ ...prev, totalPrice: total }));
-  }, [formData.quantity, formData.pricePerKg]);
 
   // Vérifier si la nature est personnalisée au chargement
   useEffect(() => {
@@ -1359,7 +1367,7 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'quantity' || name === 'pricePerKg' || name === 'weight') ? parseFloat(value) || 0 : 
+      [name]: (name === 'weight') ? parseFloat(value) || 0 : 
               (name === 'estimatedDelivery' || name === 'departureDate' || name === 'arrivalDate') ? (value ? new Date(value) : undefined) :
               value
     }));
@@ -1750,12 +1758,19 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               Quantité
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              min="0.1"
-              step="0.1"
+              value={qtyDisplay}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[\d.,]*$/.test(val) || val === '') {
+                  setQtyDisplay(val);
+                  const qty = parseFloat(val.replace(',', '.')) || 0;
+                  const ppk = parseFloat(priceDisplay.replace(',', '.')) || 0;
+                  setFormData(prev => ({ ...prev, quantity: qty, totalPrice: qty * ppk }));
+                }
+              }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
@@ -1764,11 +1779,19 @@ function EditPackageForm({ package: pkg, onSubmit, onCancel }: EditPackageFormPr
               Prix par kg (FCFA)
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               name="pricePerKg"
-              value={formData.pricePerKg}
-              onChange={handleChange}
-              min="0"
+              value={priceDisplay}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[\d.,]*$/.test(val) || val === '') {
+                  setPriceDisplay(val);
+                  const ppk = parseFloat(val.replace(',', '.')) || 0;
+                  const qty = parseFloat(qtyDisplay.replace(',', '.')) || 0;
+                  setFormData(prev => ({ ...prev, pricePerKg: ppk, totalPrice: qty * ppk }));
+                }
+              }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             />
           </div>
